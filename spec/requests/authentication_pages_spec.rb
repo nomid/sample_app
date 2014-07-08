@@ -45,6 +45,16 @@ describe "Authentication" do
     end
   end
 
+  describe "not authorizated" do
+    before { visit root_url }
+    
+    it { should_not have_link('Users') }
+    it { should_not have_link('Profile') }
+    it { should_not have_link('Settings') }
+    it { should_not have_link('Sign out') }
+    it { should have_link('Sign in', href: signin_path) }
+  end
+
   describe "authorization" do
 
     describe "for non-signed-in users" do
@@ -53,9 +63,7 @@ describe "Authentication" do
       describe "when attempting to visit a protected page" do
         before do
           visit edit_user_path(user)
-          fill_in "Email",    with: user.email
-          fill_in "Password", with: user.password
-          click_button "Sign in"
+          sign_in user
         end
 
         describe "after signing in" do
@@ -82,6 +90,16 @@ describe "Authentication" do
           before { visit users_path }
           it { should have_title('Sign in') }
         end
+      end
+    end
+
+    describe "admin should not destroy himself" do
+      let(:user) {FactoryGirl.create(:admin)}
+      before { sign_in user}
+      it "should not be able delete himself" do
+        expect do
+          delete user_path(user)
+        end.not_to change(User, :count).by(-1)
       end
     end
 
