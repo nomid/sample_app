@@ -26,6 +26,35 @@ describe "Static pages" do
         visit root_path
       end
 
+      describe "should render number of microposts" do
+        it {should have_content('2 microposts')}
+        describe "should be right pluralization" do
+          before do
+            Micropost.find('1').delete
+            visit root_path
+          end
+          it do
+            page.text.should match(/\Wmicropost\W/i)
+          end
+        end 
+      end
+
+      describe "pagination" do
+        before do
+          30.times { FactoryGirl.create(:micropost, user: user, content: "Lorem ipsum") } 
+          visit root_path
+        end
+        after  { Micropost.delete_all }
+
+        it { should have_selector('div.pagination') }
+
+        it "should list each micropost" do
+          Micropost.paginate(page: 1).each do |micropost|
+            expect(page).to have_selector('li', text: micropost.content)
+          end
+        end
+      end
+
       it "should render the user's feed" do
         user.feed.each do |item|
           expect(page).to have_selector("li##{item.id}", text: item.content)

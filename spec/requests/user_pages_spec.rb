@@ -154,5 +154,11 @@ describe "User pages" do
       it { should have_content(m2.content) }
       it { should have_content(user.microposts.count) }
     end
+
+    describe "delete links should not displayed to another user" do
+      let(:user2) { FactoryGirl.create(:user) }
+      before { sign_in user2 }
+      it { should_not have_link('delete') }
+    end
   end
 end
